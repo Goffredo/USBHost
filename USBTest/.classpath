@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path=""/>
+	<classpathentry kind="lib" path="/home/francesco/Programming/Libraries/usb4java/usb4java-1.0.0/lib/usb4java-1.0.0.jar"/>
+	<classpathentry kind="lib" path="/home/francesco/Programming/Libraries/usb4java/usb4java-1.0.0/lib/usb-api-1.0.2.jar"/>
+	<classpathentry kind="lib" path="/home/francesco/Programming/Libraries/usb4java/usb4java-1.0.0/lib/commons-lang3-3.1.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
