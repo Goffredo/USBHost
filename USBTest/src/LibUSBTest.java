@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.usb.UsbException;
 import javax.usb.UsbHostManager;
@@ -40,6 +41,15 @@ public class LibUSBTest implements Runnable {
 
 	private Device STM;
 
+	AtomicInteger[] valore = new AtomicInteger[3];
+
+	private USBLIstener listener;
+
+	public LibUSBTest(){
+		for(int i = 0; i<valore.length; i++){
+			valore[i] = new AtomicInteger();
+		}
+	}
 
 	private void retrieveSTM() {
 
@@ -72,37 +82,6 @@ public class LibUSBTest implements Runnable {
 
 	}
 
-	private void printEpReg(ByteBuffer data) {
-		//data.getShort();
-		String firstShort = (Integer
-				.toBinaryString((data.get() & 0xFF) + 0x100)).substring(1);
-		String secondShort = (Integer
-				.toBinaryString((data.get() & 0xFF) + 0x100)).substring(1);
-
-		String out = "|";
-		out += firstShort.substring(0, 1);
-		out += "|";
-		out += firstShort.substring(1, 2);
-		out += "|";
-		out += firstShort.substring(2, 4);
-		out += "|";
-		out += firstShort.substring(4, 5);
-		out += "|";
-		out += firstShort.substring(5, 7);
-		out += "|";
-		out += firstShort.substring(7, 8);
-		out += "|";
-		out += secondShort.substring(0, 1);
-		out += "|";
-		out += secondShort.substring(1, 2);
-		out += "|";
-		out += secondShort.substring(2, 4);
-		out += "|";
-		out += secondShort.substring(4, 8);
-		out += "|";
-		System.out.println(out);
-	}
-
 	@Override
 	public void run() {
 		while (!fermati.get()) {
@@ -131,11 +110,11 @@ public class LibUSBTest implements Runnable {
 							packetNumber[j] = 0;
 						}
 						System.out.println();
-						
+
 						System.out.print("differenti "+diff);
 						diff = 0;
 						lastTime = System.nanoTime();
-						
+
 					}
 					result = LibUsb.bulkTransfer(STMhandle, 0x81, data, transferred, 0);
 					int transferredBytes = transferred.get();
@@ -147,20 +126,24 @@ public class LibUSBTest implements Runnable {
 						short value1 = data.getShort();
 						short value2 = data.getShort();
 						short value3 = data.getShort();
-						
-						if (packetType == 2){
-							if (oldValue1 != value1 || oldValue2 != value2 || oldValue3 != value3)
-								diff++;
-							oldValue1 = value1;
-							oldValue2 = value2;
-							oldValue3 = value3;
-							
-							//System.out.println(oldValue1+" "+oldValue2+" "+oldValue3);
+
+						switch (packetType) {
+						case 0:		
+							listener.setRawGyroscope(value1, value2, value3);
+							break;
+						case 1:		
+							listener.setRawAccelerometer(value1, value2, value3);
+							break;
+						case 2:		
+							listener.setRawMagnetometer(value1, value2, value3);
+							break;
+
+						default:
+							break;
 						}
-						
-						//System.out.println(value1);
+
 						if(lastSeq!=-1){
-							if(currentSeq-lastSeq!=1){
+							if(currentSeq-lastSeq!=1 && !(lastSeq == 65535 && currentSeq == 0)){
 								throw new RuntimeException("Incorrect sequence number. Last: "+lastSeq+" Current: "+currentSeq);
 							}
 						}
@@ -195,6 +178,14 @@ public class LibUSBTest implements Runnable {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public int get(int i){
+		return valore[i].get();
+	}
+
+	public void setListener(USBLIstener usbReader) {
+		this.listener = usbReader;
 	}
 
 }
