@@ -147,7 +147,17 @@ public class LibUSBTest implements Runnable {
 							
 						}
 						
-						if (listener!=null){
+						if (packetType == 5){//if ANGLE
+							float ypr[] = new float[3];
+							ypr[0] = data.getFloat();
+							ypr[1] = data.getFloat();
+							ypr[2] = data.getFloat();
+							if (listener!=null)
+								listener.setEulerianBypass(ypr);
+							
+						}
+						
+						if (listener!=null  && packetType >= 0 && packetType <= 2){
 							short value1 = data.getShort();
 							short value2 = data.getShort();
 							short value3 = data.getShort();
