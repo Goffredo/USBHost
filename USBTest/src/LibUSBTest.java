@@ -99,7 +99,7 @@ public class LibUSBTest implements Runnable {
 				time = System.nanoTime();
 				int result = 0;
 				int lastSeq = -1;
-				int[] packetNumber = new int[5];
+				int[] packetNumber = new int[6];
 				long lastTime = System.nanoTime();
 				int diff=0;
 				while (result == 0 && !fermati.get() ) {
