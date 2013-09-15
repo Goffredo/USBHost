@@ -177,10 +177,12 @@ public class LibUSBTest implements Runnable {
 								break;
 							}
 						}else{
+							/*
 							for (int i=0;i< 6;i++){
 								System.out.write(data.get());
 							}
 							System.out.println();
+							*/
 						}
 
 						if(lastSeq!=-1){
