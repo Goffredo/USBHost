@@ -99,7 +99,7 @@ public class LibUSBTest implements Runnable {
 				time = System.nanoTime();
 				int result = 0;
 				int lastSeq = -1;
-				int[] packetNumber = new int[6];
+				int[] packetNumber = new int[7];
 				long lastTime = System.nanoTime();
 				int diff=0;
 				while (result == 0 && !fermati.get() ) {
@@ -154,6 +154,13 @@ public class LibUSBTest implements Runnable {
 							ypr[2] = data.getFloat();
 							if (listener!=null)
 								listener.setEulerianBypass(ypr);
+							
+						}
+						
+						if (packetType == 6){//if PWM
+							long pwm = data.getLong() & 0xFFFFFFF;
+							if (listener!=null)
+								listener.setPWM(pwm);
 							
 						}
 						
