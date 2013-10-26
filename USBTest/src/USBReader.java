@@ -23,7 +23,7 @@ public class USBReader implements Runnable{
 	public void stop() {
 		fermati = true;
 	}
-	
+
 	@Override
 	public void run() {
 		ByteBuffer data = ByteBuffer.allocateDirect(512);
@@ -31,10 +31,10 @@ public class USBReader implements Runnable{
 		IntBuffer transferred = IntBuffer.allocate(1);
 		int result = 0;
 		int lastSeq = -1;
-		int[] packetNumber = new int[6];
+		int[] packetNumber = new int[7];
 		long lastTime = System.nanoTime();
 		int diff=0;
-		
+
 		while (result == 0 && !fermati  ) {
 			//System.out.println(i);
 			if(System.nanoTime()-lastTime>=1000000000 && listener != null){
@@ -50,33 +50,36 @@ public class USBReader implements Runnable{
 				lastTime = System.nanoTime();
 
 			}
+
 			result = LibUsb.bulkTransfer(sTMhandle, 0x81, data, transferred, 0);
-			
+
 			if(result!=0){
 				fermati = true;
 				sL.usbError(result);
 				break;
 			}
-			
+
 			int transferredBytes = transferred.get();
 			//System.out.println("Trasnferred bytes: "+ transferredBytes);
 			//System.out.println(LibUsb.errorName(result));
 			while(data.position()<transferredBytes){
 				int currentSeq = data.getShort() & 0xFFFF;
 				int packetType = data.getShort() & 0xFFFF;
-				
+				//System.out.println("Packet type: "+packetType);
+
 				if (packetType == 3){//if STRING
 					System.out.print("Letto da USB: ");
-					
+
 					byte c;
 					while ( (c = data.get())!='\0' && data.hasRemaining())
 						System.out.print((char)c);
-					
+
 					System.out.println();
-					
+
 				}
-				
+
 				if (packetType == 4){//if DCM
+					//System.out.println("Letta DCM");
 					float q[] = new float[4];
 					q[0] = data.getFloat();
 					q[1] = data.getFloat();
@@ -84,37 +87,44 @@ public class USBReader implements Runnable{
 					q[3] = data.getFloat();
 					if (listener!=null)
 						listener.setDCM(q);
-					
+
 				}
-				
+
 				if (packetType == 5){//if ANGLE
+					//System.out.println("Letta ANGLE");
 					float ypr[] = new float[3];
 					ypr[0] = data.getFloat();
 					ypr[1] = data.getFloat();
 					ypr[2] = data.getFloat();
 					if (listener!=null)
 						listener.setEulerianBypass(ypr);
-					
+
 				}
-				
-				if (listener!=null  && packetType >= 0 && packetType <= 2){
+
+				if (packetType == 6){//if PWM
+					int pwm = data.getInt();
+					//System.out.println("Letto PWM: "+pwm);
+				}
+
+				if (packetType >= 0 && packetType <= 2){
 					short value1 = data.getShort();
 					short value2 = data.getShort();
 					short value3 = data.getShort();
 
-				
-					switch (packetType) {
-					case 0:		
-						listener.setRawGyroscope(value1, value2, value3);
-						break;
-					case 1:		
-						listener.setRawAccelerometer(value1, value2, value3);
-						break;
-					case 2:		
-						listener.setRawMagnetometer(value1, value2, value3);
-						break;
-					default:
-						break;
+					if(listener!=null){
+						switch (packetType) {
+						case 0:		
+							listener.setRawGyroscope(value1, value2, value3);
+							break;
+						case 1:		
+							listener.setRawAccelerometer(value1, value2, value3);
+							break;
+						case 2:		
+							listener.setRawMagnetometer(value1, value2, value3);
+							break;
+						default:
+							break;
+						}
 					}
 				}
 

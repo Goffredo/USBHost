@@ -25,17 +25,12 @@ public class LibUSBTest implements Runnable, USBStateListener {
 		//start USB
 		new Thread(test).start();
 
-		//wait 20 sec
-		try {
-			Thread.sleep(20000); 
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
+		while(true);
+/*
 		//close it
 		test.fermati.set(true);
 		System.out.println("Chiudo programma");
+		*/
 	}
 
 	public final AtomicBoolean fermati = new AtomicBoolean(false);
@@ -63,8 +58,10 @@ public class LibUSBTest implements Runnable, USBStateListener {
 		STM = null;
 
 		try {
-			// do not remove, hidden inizialization here!
+			// do not remove, hidden initialization here!
 			UsbServices services = UsbHostManager.getUsbServices();
+			LibUsb.setDebug(null, 1);
+			//LibUsb.setDebug(null, 4);
 		} catch (SecurityException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -95,7 +92,8 @@ public class LibUSBTest implements Runnable, USBStateListener {
 			retrieveSTM();
 			if (STM != null) {
 				DeviceHandle STMhandle = new DeviceHandle();
-				System.out.println(LibUsb.errorName(LibUsb.open(STM, STMhandle)));
+				System.out.println("Opening STM: "+LibUsb.errorName(LibUsb.open(STM, STMhandle)));
+				System.out.println("Claiming interface: "+LibUsb.errorName(LibUsb.claimInterface(STMhandle, 0)));
 				System.out.println(STMhandle);
 				everythingOK = true;
 				
@@ -129,6 +127,10 @@ public class LibUSBTest implements Runnable, USBStateListener {
 		}
 	}
 
+	public USBWriter getWriter(){
+		return writer;
+	}
+	
 	public int get(int i){
 		return valore[i].get();
 	}
@@ -141,7 +143,7 @@ public class LibUSBTest implements Runnable, USBStateListener {
 	public synchronized void usbError(int errorType) {
 		everythingOK = false;
 		reader.stop();
-		//writer.stop();
+		writer.stop();
 	}
 
 }
